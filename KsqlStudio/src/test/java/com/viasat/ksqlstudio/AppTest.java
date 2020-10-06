@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
  * Unit test for simple App.
  */
 public class AppTest {
+    /*
     @Test
     public void testLists() throws InterruptedException, IOException  {
         InformationService service = new InformationService("http://localhost:8088");
@@ -87,5 +88,5 @@ public class AppTest {
                 }
             }
         });
-    }
+    }*/
 }

@@ -1,0 +1,21 @@
+-------------------------------------------------------------------------------
+Test set: com.viasat.ksqlstudio.AppTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 4, Skipped: 0, Time elapsed: 0.39 s <<< FAILURE! - in com.viasat.ksqlstudio.AppTest
+testCreateStream(com.viasat.ksqlstudio.AppTest)  Time elapsed: 0.266 s  <<< ERROR!
+java.lang.IllegalArgumentException: invalid URI scheme localhost
+	at com.viasat.ksqlstudio.AppTest.testCreateStream(AppTest.java:56)
+
+testLists(com.viasat.ksqlstudio.AppTest)  Time elapsed: 0.071 s  <<< ERROR!
+java.net.ConnectException: Connection refused
+	at com.viasat.ksqlstudio.AppTest.testLists(AppTest.java:27)
+Caused by: java.net.ConnectException: Connection refused
+
+testQuery(com.viasat.ksqlstudio.AppTest)  Time elapsed: 0.006 s  <<< ERROR!
+java.lang.IllegalArgumentException: invalid URI scheme localhost
+	at com.viasat.ksqlstudio.AppTest.testQuery(AppTest.java:69)
+
+testDropStream(com.viasat.ksqlstudio.AppTest)  Time elapsed: 0.008 s  <<< ERROR!
+java.lang.IllegalArgumentException: invalid URI scheme localhost
+	at com.viasat.ksqlstudio.AppTest.testDropStream(AppTest.java:49)
+
