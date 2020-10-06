@@ -1,0 +1,39 @@
+.keyword {
+    -fx-fill: blue;
+}
+
+.string {
+    -fx-fill: #42c991;
+}
+
+.html-editor .top-toolbar {
+    -fx-max-width: 0px;
+    -fx-min-width: 0px;
+    -fx-pref-width: 0px;
+    -fx-max-height: 0px;
+    -fx-min-height: 0px;
+    -fx-pref-height: 0px;
+    -fx-opacity: 0;
+}
+
+.html-editor .bottom-toolbar {
+    -fx-max-width: 0px;
+    -fx-min-width: 0px;
+    -fx-pref-width: 0px;
+    -fx-max-height: 0px;
+    -fx-min-height: 0px;
+    -fx-pref-height: 0px;
+    -fx-opacity: 0;
+}
+
+.html-editor {
+    -fx-font-size: 25px;
+}
+
+.data-table .column-header {
+    -fx-background-color: red;
+}
+
+.data-table {
+    -fx-font-size: 50px;
+}
