@@ -8,15 +8,19 @@ import com.viasat.ksqlstudio.service.QueryService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import javafx.stage.FileChooser;
 
 
-
+import javax.swing.event.HyperlinkEvent;
+import java.awt.event.MouseWheelEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -36,6 +40,8 @@ public class Controller implements Initializable, RequestSource {
 
 
     /* UI */
+
+    private int baseFontSize = 25;
 
     @FXML
     private TabPane editorPane;
@@ -127,8 +133,6 @@ public class Controller implements Initializable, RequestSource {
         AnchorPane defaultPane = new AnchorPane();
         CodeEditor editor = new CodeEditor();
         editor.setId(filePath);
-        editor.getStylesheets().add("styles.css");
-        editor.getStyleClass().add("html-editor");
         defaultPane.getChildren().add(editor);
         codeEditors.add(editor);
         AnchorPane.setBottomAnchor(editor, 0D);
@@ -205,6 +209,7 @@ public class Controller implements Initializable, RequestSource {
                 StreamProperties props = getProperties();
                 queryThread = new QueryThread(resultsTable,
                         queryService.streamQuery(queryText, props), this);
+                queryThread.setBaseFontSize(this.baseFontSize);
                 queryThread.start();
             } else {
                 runButton.setText("Terminate");
@@ -435,6 +440,35 @@ public class Controller implements Initializable, RequestSource {
         }
         for (CodeEditor area : codeEditors) {
             area.destroy();
+        }
+    }
+
+
+    public void onZoomIn() {
+        if (this.baseFontSize < 30) {
+            this.baseFontSize += 5;
+            this.runButton.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx;",
+                    this.baseFontSize));
+            this.codeEditors.stream().forEach(editor ->
+                    editor.setStyle(String.format("-fx-font-size: %dpx;", (int)(baseFontSize * 1.25))));
+            this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;", (int) (baseFontSize * 1.5)));
+            if (this.queryThread != null) {
+                this.queryThread.setBaseFontSize(baseFontSize);
+            }
+        }
+    }
+
+    public void onZoomOut() {
+        if (this.baseFontSize > 5) {
+            this.baseFontSize -= 5;
+            this.runButton.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx",
+                    this.baseFontSize));
+            this.codeEditors.stream().forEach(editor ->
+                    editor.setStyle(String.format("-fx-font-size: %dpx;", (int)(baseFontSize * 1.25))));
+            this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;", (int) (baseFontSize * 1.5)));
+            if (this.queryThread != null) {
+                this.queryThread.setBaseFontSize(baseFontSize);
+            }
         }
     }
 

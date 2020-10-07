@@ -28,6 +28,8 @@ public class App extends Application
         Parent root = loader.load();
         primaryStage.setTitle("ksqlDB Studio");
         primaryStage.setScene(new Scene(root, 900, 900));
+        primaryStage.getScene().getStylesheets()
+                .add(getClass().getResource("/styles.css").toExternalForm());
         primaryStage.show();
         final Controller controller = loader.getController();
         primaryStage.setOnCloseRequest( ev -> {

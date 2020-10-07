@@ -18,7 +18,7 @@
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.viasat.ksqlstudio.view.Controller">
    <children>
-      <MenuBar style="-fx-font-size: 20;">
+      <MenuBar>
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
@@ -35,7 +35,15 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
             <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
+              <MenuItem mnemonicParsing="false" onAction="#onZoomIn" text="Zoom in">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="EQUALS" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#onZoomOut" text="Zoom out">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="MINUS" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Help">
@@ -47,7 +55,7 @@
       </MenuBar>
       <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
          <children>
-            <VBox maxWidth="-Infinity" prefHeight="200.0" prefWidth="400.0" style="-fx-font-size: 20;" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="-Infinity" prefHeight="200.0" prefWidth="400.0" HBox.hgrow="ALWAYS">
                <children>
                   <Label text="Topics">
                      <VBox.margin>
@@ -79,15 +87,15 @@
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                      <children>
-                        <TabPane fx:id="editorPane" prefHeight="200.0" prefWidth="200.0" style="-fx-font-size: 20;" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <TabPane fx:id="editorPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                         <HBox maxHeight="-Infinity" minHeight="-Infinity" prefHeight="75.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                            <children>
-                              <Button fx:id="runButton" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#runButtonClick" style="-fx-font-size: 30;" text="Run">
+                              <Button fx:id="runButton" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#runButtonClick" text="Run">
                                  <HBox.margin>
                                     <Insets bottom="10.0" left="5.0" top="10.0" />
                                  </HBox.margin>
                               </Button>
-                              <CheckBox fx:id="cbxOffset" alignment="TOP_LEFT" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" style="-fx-font-size: 20;" text="From beginning">
+                              <CheckBox fx:id="cbxOffset" alignment="TOP_LEFT" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="From beginning">
                                  <HBox.margin>
                                     <Insets bottom="10.0" left="15.0" top="20.0" />
                                  </HBox.margin>
@@ -98,8 +106,8 @@
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                      <children>
-                        <Label fx:id="errorLabel" alignment="CENTER" style="-fx-font-size: 30; -fx-text-fill: red;" text="Label" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                        <TableView fx:id="resultsTable" prefHeight="478.0" prefWidth="700.0" style="-fx-font-size: 18;" styleClass="data-table" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <Label fx:id="errorLabel" alignment="CENTER" style="-fx-text-fill: red;" text="Label" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <TableView fx:id="resultsTable" prefHeight="478.0" prefWidth="700.0"  styleClass="data-table" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                      </children>
                   </AnchorPane>
               </items>

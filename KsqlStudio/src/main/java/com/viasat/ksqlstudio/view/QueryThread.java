@@ -35,8 +35,13 @@ public class QueryThread extends Thread {
     // Date format for displaying ROWTIME field
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
+    // Maximum number of records to keep in the table
+    private final int MAX_RECORDS = 2000;
+
     // Used to stop the thread, may not be necessary.
     private volatile boolean running = false;
+
+    private int baseFontSize = 20;
 
     public boolean isRunning() {
         return running;
@@ -74,7 +79,7 @@ public class QueryThread extends Thread {
                             final int j = i;
 
                             TableColumn<Object[], String> col = new TableColumn<>(fields.get(i));
-                            col.setStyle("-fx-font-size: 25px;");
+                            col.setStyle(String.format("-fx-font-size: %dpx;", (int)(this.baseFontSize * 1.25)));
                             if (fields.get(i).equals("ROWTIME") || fields.get(i).equals("WINDOWSTART")
                                     || fields.get(i).equals("WINDOWEND")) {
                                 col.setCellValueFactory((TableColumn.CellDataFeatures<Object[], String> cellDataFeatures) ->
@@ -94,6 +99,9 @@ public class QueryThread extends Thread {
                         QueryChunk chunk = (QueryChunk) obj;
                         if (chunk.getRow() != null) {
                             items.add(0, chunk.getRow().getColumns());
+                            if (items.size() > MAX_RECORDS) {
+                                items.remove(items.size() - 1);
+                            }
                         }
                     } else if (obj instanceof StatementError) {
                         StatementError err = (StatementError) obj;
@@ -127,6 +135,13 @@ public class QueryThread extends Thread {
             }
         }
         return fields;
+    }
+
+    public void setBaseFontSize(int size) {
+        this.baseFontSize = size;
+        for (TableColumn t : view.getColumns()) {
+            t.setStyle(String.format("-fx-font-size: %dpx;", (int)(size * 1.25)));
+        }
     }
 
 }
