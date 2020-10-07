@@ -2,7 +2,7 @@
 
 This is provides a GUI-based tool for editing and executing ksqlDB queries.
 
-## Getting Started
+### Getting Started
 **Prerequisites:** Java version 12 and up, Maven, git
 
 1. git clone https://github.com/akaczano/KsqlDBStudio
