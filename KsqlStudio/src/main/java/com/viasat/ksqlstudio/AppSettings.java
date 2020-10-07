@@ -19,8 +19,10 @@ import java.util.List;
 public class AppSettings {
 
     private String ksqlHost;
-    private List<String> openFiles = new ArrayList<>();
-
+    private final List<String> openFiles = new ArrayList<>();
+    private double splitPanePos = 0.2;
+    private int baseFontSize = 25;
+    private int selectedTab = -1;
 
     public String getKsqlHost() {
         return ksqlHost;
@@ -34,6 +36,29 @@ public class AppSettings {
         return openFiles;
     }
 
+    public double getSplitPanePos() {
+        return splitPanePos;
+    }
+
+    public void setSplitPanePos(double splitPanePos) {
+        this.splitPanePos = splitPanePos;
+    }
+
+    public int getBaseFontSize() {
+        return baseFontSize;
+    }
+
+    public void setBaseFontSize(int baseFontSize) {
+        this.baseFontSize = baseFontSize;
+    }
+
+    public int getSelectedTab() {
+        return selectedTab;
+    }
+
+    public void setSelectedTab(int selectedTab) {
+        this.selectedTab = selectedTab;
+    }
 
     /**
      * Loads the values of the settings from a file. Currently the settings file
@@ -52,6 +77,15 @@ public class AppSettings {
                     }
                     else if (line.contains("<file>")) {
                         settings.getOpenFiles().add(readTag(line));
+                    }
+                    else if (line.contains("splitPane1")) {
+                        settings.splitPanePos = Double.parseDouble(readTag(line));
+                    }
+                    else if (line.contains("baseFontSize")) {
+                        settings.setBaseFontSize(Integer.parseInt(readTag(line)));
+                    }
+                    else if (line.contains("selectedTab")) {
+                        settings.setSelectedTab(Integer.parseInt(readTag(line)));
                     }
                 }
             } catch (IOException e) {
@@ -99,6 +133,10 @@ public class AppSettings {
                 for (String f : settings.getOpenFiles()) {
                     data.append(String.format("<file>%s</file>\n", f));
                 }
+                data.append(String.format("<splitPane1>%f</splitPane1>\n", settings.getSplitPanePos()));
+                data.append(String.format("<baseFontSize>%d</baseFontSize>\n", settings.getBaseFontSize()));
+                data.append(String.format("<selectedTab>%d</selectedTab>\n", settings.getSelectedTab()));
+
                 Files.writeString(settingsStore.toPath(), data.toString(), StandardOpenOption.TRUNCATE_EXISTING);
             } catch (IOException e) {
                 e.printStackTrace();

@@ -1,2 +1,9 @@
 <hostname>http://localhost:8088</hostname>
 <file>/home/aidan/IdeaProjects/TestPipelines/Aidan/DemoPipelineMaven/ksql/create_connector.ksql</file>
+<file>/home/aidan/IdeaProjects/TestPipelines/Aidan/DemoPipelineMaven/ksql/create_stream.ksql</file>
+<file>/home/aidan/IdeaProjects/TestPipelines/Aidan/DemoPipelineMaven/ksql/create_table.ksql</file>
+<file>/home/aidan/IdeaProjects/TestPipelines/Aidan/DemoPipelineMaven/ksql/simple_queries.ksql</file>
+<file>/home/aidan/IdeaProjects/TestPipelines/Aidan/DemoPipelineMaven/ksql/table_queries.ksql</file>
+<splitPane1>0.403065</splitPane1>
+<baseFontSize>25</baseFontSize>
+<selectedTab>2</selectedTab>

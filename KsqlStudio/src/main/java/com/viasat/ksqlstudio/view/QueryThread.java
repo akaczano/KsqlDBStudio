@@ -79,7 +79,7 @@ public class QueryThread extends Thread {
                             final int j = i;
 
                             TableColumn<Object[], String> col = new TableColumn<>(fields.get(i));
-                            col.setStyle(String.format("-fx-font-size: %dpx;", (int)(this.baseFontSize * 1.25)));
+                            col.setStyle(String.format("-fx-font-size: %dpx;", (int)(this.baseFontSize)));
                             if (fields.get(i).equals("ROWTIME") || fields.get(i).equals("WINDOWSTART")
                                     || fields.get(i).equals("WINDOWEND")) {
                                 col.setCellValueFactory((TableColumn.CellDataFeatures<Object[], String> cellDataFeatures) ->
@@ -140,7 +140,7 @@ public class QueryThread extends Thread {
     public void setBaseFontSize(int size) {
         this.baseFontSize = size;
         for (TableColumn t : view.getColumns()) {
-            t.setStyle(String.format("-fx-font-size: %dpx;", (int)(size * 1.25)));
+            t.setStyle(String.format("-fx-font-size: %dpx;", (int)(size)));
         }
     }
 

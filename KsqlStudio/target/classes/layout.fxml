@@ -20,17 +20,26 @@
    <children>
       <MenuBar>
         <menus>
-          <Menu mnemonicParsing="false" text="File">
+          <Menu mnemonicParsing="false" style="-fx-text-fill: #00FFFF;" text="File">
             <items>
                   <MenuItem mnemonicParsing="false" onAction="#onConnect" text="Connect to ksqlDB" />
-                  <MenuItem mnemonicParsing="false" onAction="#onNew" text="New" />
-                  <MenuItem mnemonicParsing="false" onAction="#onOpen" text="Open" />
+                  <MenuItem mnemonicParsing="false" onAction="#onNew" text="New">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="N" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#onOpen" text="Open">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#onSave" text="Save">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
-              <MenuItem fx:id="onExit" mnemonicParsing="false" text="Exit" />
+              <MenuItem fx:id="onExit" mnemonicParsing="false" text="Exit">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="F4" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
@@ -53,66 +62,74 @@
           </Menu>
         </menus>
       </MenuBar>
-      <HBox prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
-         <children>
-            <VBox maxWidth="-Infinity" prefHeight="200.0" prefWidth="400.0" HBox.hgrow="ALWAYS">
+      <SplitPane fx:id="splitPane1" dividerPositions="0.2049306625577812" maxHeight="1.7976931348623157E308" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <Label text="Topics">
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" top="5.0" />
-                     </VBox.margin>
-                  </Label>
-                  <ListView fx:id="topicsView" prefHeight="200.0" prefWidth="200.0" />
-                  <Label text="Streams">
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" top="5.0" />
-                     </VBox.margin>
-                  </Label>
-                  <ListView fx:id="streamsView" prefHeight="200.0" prefWidth="200.0" />
-                  <Label text="Tables">
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" top="5.0" />
-                     </VBox.margin>
-                  </Label>
-                  <ListView fx:id="tablesView" prefHeight="200.0" prefWidth="200.0" />
-                  <Label text="Connectors">
-                     <VBox.margin>
-                        <Insets bottom="5.0" left="5.0" top="5.0" />
-                     </VBox.margin>
-                  </Label>
-                  <ListView fx:id="connectorsView" prefHeight="200.0" prefWidth="200.0" />
+                  <VBox maxWidth="-Infinity" prefHeight="200.0" prefWidth="400.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <Label text="Topics">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="5.0" top="5.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ListView fx:id="topicsView" prefHeight="200.0" prefWidth="200.0" />
+                        <Label text="Streams">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="5.0" top="5.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ListView fx:id="streamsView" prefHeight="200.0" prefWidth="200.0" />
+                        <Label text="Tables">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="5.0" top="5.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ListView fx:id="tablesView" prefHeight="200.0" prefWidth="200.0" />
+                        <Label text="Connectors">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="5.0" top="5.0" />
+                           </VBox.margin>
+                        </Label>
+                        <ListView fx:id="connectorsView" prefHeight="200.0" prefWidth="200.0" />
+                     </children>
+                  </VBox>
                </children>
-            </VBox>
-            <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" HBox.hgrow="ALWAYS">
-              <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                     <children>
-                        <TabPane fx:id="editorPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                        <HBox maxHeight="-Infinity" minHeight="-Infinity" prefHeight="75.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                            <children>
-                              <Button fx:id="runButton" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#runButtonClick" text="Run">
-                                 <HBox.margin>
-                                    <Insets bottom="10.0" left="5.0" top="10.0" />
-                                 </HBox.margin>
-                              </Button>
-                              <CheckBox fx:id="cbxOffset" alignment="TOP_LEFT" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="From beginning">
-                                 <HBox.margin>
-                                    <Insets bottom="10.0" left="15.0" top="20.0" />
-                                 </HBox.margin>
-                              </CheckBox>
+                              <TabPane fx:id="editorPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <HBox maxHeight="-Infinity" minHeight="-Infinity" prefHeight="75.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                 <children>
+                                    <Button fx:id="runButton" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#runButtonClick" text="Run">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" left="5.0" top="10.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                    <CheckBox fx:id="cbxOffset" alignment="TOP_LEFT" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="From beginning">
+                                       <HBox.margin>
+                                          <Insets bottom="10.0" left="15.0" top="20.0" />
+                                       </HBox.margin>
+                                    </CheckBox>
+                                 </children>
+                              </HBox>
                            </children>
-                        </HBox>
-                     </children>
-                  </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                     <children>
-                        <Label fx:id="errorLabel" alignment="CENTER" style="-fx-text-fill: red;" text="Label" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                        <TableView fx:id="resultsTable" prefHeight="478.0" prefWidth="700.0"  styleClass="data-table" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                     </children>
-                  </AnchorPane>
-              </items>
-            </SplitPane>
-         </children>
-      </HBox>
+                        </AnchorPane>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                           <children>
+                              <Label fx:id="errorLabel" alignment="CENTER" style="-fx-text-fill: red;" text="Label" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                              <TableView fx:id="resultsTable" prefHeight="478.0" prefWidth="700.0" styleClass="data-table" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
    </children>
 </VBox>

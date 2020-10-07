@@ -26,12 +26,16 @@ public class App extends Application
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/layout.fxml"));
         Parent root = loader.load();
+        final Controller controller = loader.getController();
         primaryStage.setTitle("ksqlDB Studio");
+
         primaryStage.setScene(new Scene(root, 900, 900));
         primaryStage.getScene().getStylesheets()
                 .add(getClass().getResource("/styles.css").toExternalForm());
+        primaryStage.setMaximized(true);
         primaryStage.show();
-        final Controller controller = loader.getController();
+        controller.setStage(primaryStage);
+
         primaryStage.setOnCloseRequest( ev -> {
             controller.destroy();
             AppSettings.save(settings);

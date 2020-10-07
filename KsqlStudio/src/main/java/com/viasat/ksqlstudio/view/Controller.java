@@ -17,6 +17,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 
 import javax.swing.event.HyperlinkEvent;
@@ -41,7 +42,12 @@ public class Controller implements Initializable, RequestSource {
 
     /* UI */
 
-    private int baseFontSize = 25;
+    private Stage stage;
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+        scale();
+    }
 
     @FXML
     private TabPane editorPane;
@@ -74,7 +80,11 @@ public class Controller implements Initializable, RequestSource {
     @FXML
     private CheckBox cbxOffset;
 
+    @FXML
+    private SplitPane splitPane1;
+
     private List<CodeEditor> codeEditors;
+
 
     // Threads
     private Thread updateThread;
@@ -114,9 +124,17 @@ public class Controller implements Initializable, RequestSource {
                 App.getSettings().getOpenFiles().remove(f);
             }
         }
+
+        splitPane1.setDividerPositions(App.getSettings().getSplitPanePos());
+
+
         if (editorPane.getTabs().size() < 1) {
             runButton.setVisible(false);
             cbxOffset.setVisible(false);
+        }
+        else if (App.getSettings().getSelectedTab() >= 0 &&
+            App.getSettings().getSelectedTab() < editorPane.getTabs().size())  {
+            editorPane.getSelectionModel().select(App.getSettings().getSelectedTab());
         }
         updateThread = new Thread(this::refresh);
         updateThread.start();
@@ -209,7 +227,7 @@ public class Controller implements Initializable, RequestSource {
                 StreamProperties props = getProperties();
                 queryThread = new QueryThread(resultsTable,
                         queryService.streamQuery(queryText, props), this);
-                queryThread.setBaseFontSize(this.baseFontSize);
+                queryThread.setBaseFontSize(App.getSettings().getBaseFontSize());
                 queryThread.start();
             } else {
                 runButton.setText("Terminate");
@@ -248,8 +266,8 @@ public class Controller implements Initializable, RequestSource {
                 StatementResponse streams = (StatementResponse) streamsResult;
                 StatementResponse topics = (StatementResponse) topicsResult;
                 StatementResponse tables = (StatementResponse) tablesResult;
+                StatementResponse connectors = (StatementResponse) connectorsResult;
                 Platform.runLater(() -> {
-                    StatementResponse connectors = (StatementResponse) connectorsResult;
                     streamsList = FXCollections.observableArrayList(streams.getStreams());
                     streamsView.setItems(streamsList);
                     topicsList = FXCollections.observableArrayList(topics.getTopics());
@@ -351,6 +369,7 @@ public class Controller implements Initializable, RequestSource {
         }
         // Add tab to editor
         addTab(name, "");
+        this.editorPane.getSelectionModel().selectLast();
     }
 
     /**
@@ -441,34 +460,35 @@ public class Controller implements Initializable, RequestSource {
         for (CodeEditor area : codeEditors) {
             area.destroy();
         }
+        double num = this.splitPane1.getDividerPositions()[0];
+        App.getSettings().setSplitPanePos(this.splitPane1.getDividerPositions()[0]);
+        App.getSettings().setSelectedTab(this.editorPane.getSelectionModel().getSelectedIndex());
     }
 
 
     public void onZoomIn() {
-        if (this.baseFontSize < 30) {
-            this.baseFontSize += 5;
-            this.runButton.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx;",
-                    this.baseFontSize));
-            this.codeEditors.stream().forEach(editor ->
-                    editor.setStyle(String.format("-fx-font-size: %dpx;", (int)(baseFontSize * 1.25))));
-            this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;", (int) (baseFontSize * 1.5)));
-            if (this.queryThread != null) {
-                this.queryThread.setBaseFontSize(baseFontSize);
-            }
+        if (App.getSettings().getBaseFontSize() < 30) {
+            App.getSettings().setBaseFontSize(App.getSettings().getBaseFontSize() + 5);
+            scale();
         }
     }
 
     public void onZoomOut() {
-        if (this.baseFontSize > 5) {
-            this.baseFontSize -= 5;
-            this.runButton.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx",
-                    this.baseFontSize));
-            this.codeEditors.stream().forEach(editor ->
-                    editor.setStyle(String.format("-fx-font-size: %dpx;", (int)(baseFontSize * 1.25))));
-            this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;", (int) (baseFontSize * 1.5)));
-            if (this.queryThread != null) {
-                this.queryThread.setBaseFontSize(baseFontSize);
-            }
+        if (App.getSettings().getBaseFontSize() > 5) {
+            App.getSettings().setBaseFontSize(App.getSettings().getBaseFontSize() - 5);
+            scale();
+        }
+
+    }
+    public void scale() {
+        this.stage.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx",
+                App.getSettings().getBaseFontSize()));
+        this.codeEditors.stream().forEach(editor ->
+                editor.setStyle(String.format("-fx-font-size: %dpx;", App.getSettings().getBaseFontSize())));
+        this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;",
+                (int) (App.getSettings().getBaseFontSize() * 1.25)));
+        if (this.queryThread != null) {
+            this.queryThread.setBaseFontSize(App.getSettings().getBaseFontSize());
         }
     }
 

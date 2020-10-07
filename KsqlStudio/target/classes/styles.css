@@ -20,11 +20,15 @@
 .menu-bar .menu {
     -fx-background-color: #2b2e2c;
 }
+.menu-bar .menu:hover {
+    -fx-background-color: #b6dbd6;
+}
+
 .menu-bar .menu-item {
     -fx-background-color: #2b2e2c;
 }
 .menu-bar .menu-item:hover{
-    -fx-background-color: cbd1cd;
+    -fx-background-color: #b6dbd6;
     -fx-text-fill: black;
 }
 .menu-bar .label {
