@@ -1,0 +1,3 @@
+SELECT * FROM transactions EMIT CHANGES;
+CREATE STREAM transactions_west AS SELECT * FROM transactions WHERE STORER = 'WEST'
+EMIT CHANGES;
