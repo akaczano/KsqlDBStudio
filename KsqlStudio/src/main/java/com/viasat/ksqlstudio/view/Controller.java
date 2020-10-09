@@ -1,39 +1,48 @@
 package com.viasat.ksqlstudio.view;
 
 import com.viasat.ksqlstudio.App;
+import com.viasat.ksqlstudio.AppSettings;
 import com.viasat.ksqlstudio.model.query.StreamProperties;
 import com.viasat.ksqlstudio.model.statement.*;
 import com.viasat.ksqlstudio.service.InformationService;
 import com.viasat.ksqlstudio.service.QueryService;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 
-import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 
-import javax.swing.event.HyperlinkEvent;
-import java.awt.event.MouseWheelEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The controller class for the application. Handles all UI events. Also handles
  * connection to ksqlDB and starts threads for query processing and list refreshes.
  */
 public class Controller implements Initializable, RequestSource {
+
+    /* Constants */
+
+    // Refresh delay in seconds
+    private static final int REFRESH_DELAY = 2;
+    private static final int MAX_RECORDS = 5000;
+
 
     // Rest services
     private InformationService infoService;
@@ -47,6 +56,7 @@ public class Controller implements Initializable, RequestSource {
     public void setStage(Stage stage) {
         this.stage = stage;
         scale();
+        stage.setOnCloseRequest(this::destroy);
     }
 
     @FXML
@@ -73,6 +83,7 @@ public class Controller implements Initializable, RequestSource {
 
     @FXML
     private TableView<Object[]> resultsTable;
+    private ObservableList<Object[]> resultsList;
 
     @FXML
     private Label errorLabel;
@@ -83,27 +94,32 @@ public class Controller implements Initializable, RequestSource {
     @FXML
     private SplitPane splitPane1;
 
-    private List<CodeEditor> codeEditors;
+    @FXML
+    private ScrollPane errorDisplay;
+
+    private FileEditor fileEditor;
 
 
-    // Threads
-    private Thread updateThread;
-    private QueryThread queryThread;
-    private StatementThread statementThread;
+    // Date format for displaying ROWTIME field
+    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
+    // Executors
+    private ScheduledExecutorService updateExecutor;
+    private ExecutorService queryExecutor;
+    private java.util.stream.Stream<Object> queryStream;
+    private ExecutorService statementExecutor;
 
     /**
      * Called when the program is started up. Does some UI initialization and starts
      * threads.
+     *
      * @param location
      * @param resources
      */
     @FXML
     public void initialize(URL location, ResourceBundle resources) {
-        codeEditors = new ArrayList<>();
 
         // Load settings
-
         if (App.getSettings().getKsqlHost() != null) {
             String hostname = App.getSettings().getKsqlHost();
             infoService = new InformationService(hostname);
@@ -113,69 +129,26 @@ public class Controller implements Initializable, RequestSource {
                 runButton.setDisable(false);
             }
         }
-
-        for (int i = 0; i < App.getSettings().getOpenFiles().size(); i++) {
-            String f = App.getSettings().getOpenFiles().get(i);
-            File file = new File(f);
-            if (file.exists()) {
-                openFile(file);
-            }
-            else {
-                App.getSettings().getOpenFiles().remove(f);
-            }
-        }
-
-        splitPane1.setDividerPositions(App.getSettings().getSplitPanePos());
+        fileEditor = new FileEditor(this.editorPane);
 
 
         if (editorPane.getTabs().size() < 1) {
             runButton.setVisible(false);
             cbxOffset.setVisible(false);
-        }
-        else if (App.getSettings().getSelectedTab() >= 0 &&
-            App.getSettings().getSelectedTab() < editorPane.getTabs().size())  {
+        } else if (App.getSettings().getSelectedTab() >= 0 &&
+                App.getSettings().getSelectedTab() < editorPane.getTabs().size()) {
             editorPane.getSelectionModel().select(App.getSettings().getSelectedTab());
         }
-        updateThread = new Thread(this::refresh);
-        updateThread.start();
+        App.getSettings().setSelectedTab(editorPane.getSelectionModel().getSelectedIndex());
         resultsTable.getStyleClass().add("data-table");
+        resultsList = FXCollections.observableArrayList();
+        resultsTable.setItems(resultsList);
+
+        updateExecutor = Executors.newSingleThreadScheduledExecutor();
+        updateExecutor.scheduleWithFixedDelay(this::refresh, REFRESH_DELAY,
+                REFRESH_DELAY, TimeUnit.SECONDS);
     }
 
-    /**
-     * Adds a tab to the code editor.
-     * @param filename The name of the file
-     * @param filePath The full path to the file
-     */
-    private void addTab(String filename, String filePath) {
-        Tab defaultTab = new Tab(filename);
-        AnchorPane defaultPane = new AnchorPane();
-        CodeEditor editor = new CodeEditor();
-        editor.setId(filePath);
-        defaultPane.getChildren().add(editor);
-        codeEditors.add(editor);
-        AnchorPane.setBottomAnchor(editor, 0D);
-        AnchorPane.setTopAnchor(editor, 0D);
-        AnchorPane.setLeftAnchor(editor, 0D);
-        AnchorPane.setRightAnchor(editor, 0D);
-        defaultTab.setClosable(true);
-        defaultTab.setContent(defaultPane);
-        editorPane.getTabs().add(defaultTab);
-        ContextMenu menu = new ContextMenu();
-        MenuItem closeItem = new MenuItem("Close");
-        closeItem.setOnAction(e -> {
-            int index = editorPane.getTabs().indexOf(defaultTab);
-            codeEditors.remove(index);
-            editorPane.getTabs().remove(defaultTab);
-            App.getSettings().getOpenFiles().remove(editor.getId());
-        });
-        menu.getItems().add(closeItem);
-        defaultTab.setContextMenu(menu);
-
-        if (editorPane.getTabs().size() == 1) {
-            runButton.setVisible(true);
-            cbxOffset.setVisible(true);
-        }
-    }
 
     /**
      * Called when the 'Connect to ksqlDB menu item is clicked'
@@ -183,64 +156,57 @@ public class Controller implements Initializable, RequestSource {
      * to the server.
      */
     public void onConnect() {
-        // Create dialog
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Connect to ksqlDB");
-        dialog.setContentText("Hostname: ");
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            infoService = new InformationService(result.get());
-            queryService = new QueryService(result.get());
-            if (updateLists()) {
-                runButton.setDisable(false);
-                // If it worked, we want to update the app settings to save
-                // the new hostname
-                App.getSettings().setKsqlHost(result.get());
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Connection failed");
-                alert.setContentText("Failed to connect to ksqlDB server on " + result.get());
-                alert.showAndWait();
-            }
+        try {
+            int baseFont = App.getSettings().getBaseFontSize();
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/connect_dialog.fxml"));
+            Parent parent = loader.load();
+            Scene scene = new Scene(parent, baseFont * 25, baseFont * 15);
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Connect server");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            ConnectController controller = loader.getController();
+            controller.initialize(stage);
+            stage.showAndWait();
+            infoService = new InformationService(App.getSettings().getKsqlHost());
+        } catch(IOException e) {
+            e.printStackTrace();
         }
     }
 
     /**
      * Called when the 'Run' or 'Terminate' button is clicked.
-     * Handled query execution and termination.
+     * Handles query execution and termination.
      */
     public void runButtonClick() {
         if (runButton.getText().equals("Run")) {
-            String queryText = codeEditors.get(editorPane.getSelectionModel().getSelectedIndex())
-                    .getSelectedText();
+            String queryText = fileEditor.getSelectedText();
 
             if (queryText.length() < 1) {
-                queryText = codeEditors.get(editorPane.getSelectionModel().getSelectedIndex()).getText();
+                queryText = fileEditor.getText();
             }
 
-            errorLabel.setVisible(false);
+            errorDisplay.setVisible(false);
             resultsTable.setVisible(true);
+            runButton.setText("Terminate");
             if (queryText.startsWith("SELECT")) {
                 resultsTable.getItems().clear();
                 resultsTable.getColumns().clear();
-                runButton.setText("Terminate");
-                StreamProperties props = getProperties();
-                queryThread = new QueryThread(resultsTable,
-                        queryService.streamQuery(queryText, props), this);
-                queryThread.setBaseFontSize(App.getSettings().getBaseFontSize());
-                queryThread.start();
+                this.queryStream = queryService.streamQuery(queryText, getProperties());
+                queryExecutor = Executors.newSingleThreadExecutor();
+                queryExecutor.submit(new QueryJob(queryStream, this));
+
             } else {
-                runButton.setText("Terminate");
-                statementThread = new StatementThread(queryText,
-                        infoService, this);
-                statementThread.start();
+                statementExecutor = Executors.newSingleThreadExecutor();
+                statementExecutor.submit(new StatementJob(infoService, queryText, this));
             }
         } else {
-            if (statementThread != null && statementThread.isRunning()) {
-                statementThread.interrupt();
-            } else if (queryThread != null && queryThread.isRunning()) {
-                queryThread.stopRunning();
-
+            if (!statementExecutor.isTerminated()) {
+                statementExecutor.shutdownNow();
+            } else if (!queryExecutor.isTerminated()) {
+                queryStream.close();
+                queryExecutor.shutdown();
             }
             runButton.setText("Run");
         }
@@ -249,13 +215,13 @@ public class Controller implements Initializable, RequestSource {
     /**
      * Updates the values stored in the topics, streams, tables, and connectors lists.
      * This is also the main way connection to ksqlDB is verified.
+     *
      * @return True if the server was queried successfully, false otherwise.
      */
     private boolean updateLists() {
         if (infoService == null) {
             return false;
         }
-
         try {
             ResponseBase streamsResult = infoService.executeStatement("LIST STREAMS;");
             ResponseBase topicsResult = infoService.executeStatement("LIST TOPICS;");
@@ -286,9 +252,44 @@ public class Controller implements Initializable, RequestSource {
         }
     }
 
+    @Override
+    public void setColumns(List<String> fields) {
+        for (int i = 0; i < fields.size(); i++) {
+            final int j = i;
+
+            TableColumn<Object[], String> col = new TableColumn<>(fields.get(i));
+            col.setStyle(String.format("-fx-font-size: %dpx;", App.getSettings().getBaseFontSize()));
+            if (fields.get(i).equals("ROWTIME") || fields.get(i).equals("WINDOWSTART")
+                    || fields.get(i).equals("WINDOWEND")) {
+                col.setCellValueFactory((TableColumn.CellDataFeatures<Object[], String> cellDataFeatures) ->
+                        new SimpleStringProperty(
+                                format.format(new Date((long) Double.parseDouble(cellDataFeatures.getValue()[j].toString())))
+                        )
+                );
+            } else {
+                col.setCellValueFactory((TableColumn.CellDataFeatures<Object[], String> cellDataFeatures) ->
+                        new SimpleStringProperty(cellDataFeatures.getValue()[j].toString())
+                );
+            }
+            col.setMinWidth(resultsTable.getWidth() / fields.size());
+            Platform.runLater(() -> resultsTable.getColumns().add(col));
+        }
+    }
+
+    @Override
+    public void addRow(Object[] row) {
+        Platform.runLater(() -> {
+            this.resultsList.add(0, row);
+            if (this.resultsList.size() > MAX_RECORDS) {
+                this.resultsList.remove(this.resultsList.size() - 1);
+            }
+        });
+    }
+
     /**
      * Called from the query thread when there is an error with the
      * query. Displays the error on the screen.
+     *
      * @param message The error text received from ksqlDB
      */
     @Override
@@ -297,7 +298,7 @@ public class Controller implements Initializable, RequestSource {
         // directly.
         Platform.runLater(() -> {
             this.errorLabel.setText(message);
-            this.errorLabel.setVisible(true);
+            this.errorDisplay.setVisible(true);
             this.resultsTable.setVisible(false);
         });
     }
@@ -319,6 +320,7 @@ public class Controller implements Initializable, RequestSource {
      * Called from the query threads to get the streams properties for the query.
      * Will add 'auto.offset.reset'='earliest' to the query if the 'From beginning'
      * box is checked.
+     *
      * @return A stream properties object.
      */
     public StreamProperties getProperties() {
@@ -334,19 +336,8 @@ public class Controller implements Initializable, RequestSource {
      * and update the list views.
      */
     public void refresh() {
-        while (true) {
-            try {
-                boolean connected = updateLists();
-                if (!connected) {
-                    runButton.setDisable(true);
-                } else {
-                    runButton.setDisable(false);
-                }
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                break;
-            }
-        }
+        boolean connected = updateLists();
+        runButton.setDisable(!connected);
     }
 
     /**
@@ -354,22 +345,7 @@ public class Controller implements Initializable, RequestSource {
      * in the code editor.
      */
     public void onNew() {
-        String name = "query1";
-
-        // Compute tab name (harder than it sounds)
-        Optional<Tab> maxQuery = editorPane.getTabs().stream()
-                .filter(t -> t.getText().startsWith("query"))
-                .reduce((max, t) -> max.getText().compareTo(t.getText()) > 0 ? max : t);
-
-        if (maxQuery.isPresent()) {
-            try {
-                int num = Integer.parseInt(maxQuery.get().getText().substring(5)) + 1;
-                name = "query" + num;
-            } catch (NumberFormatException e) {}
-        }
-        // Add tab to editor
-        addTab(name, "");
-        this.editorPane.getSelectionModel().selectLast();
+        fileEditor.onNew();
     }
 
     /**
@@ -379,63 +355,16 @@ public class Controller implements Initializable, RequestSource {
      * app is started.
      */
     public void onOpen() {
-        FileChooser fileChooser = new FileChooser();
-        List<File> files = fileChooser.showOpenMultipleDialog(null);
-        for (File file : files) {
-            if (file != null && file.exists()) {
-                openFile(file);
-                App.getSettings().getOpenFiles().add(file.getAbsolutePath());
-            }
-        }
+        this.fileEditor.onOpen();
     }
 
-    /**
-     * Does the actual work of reading the text in the file
-     * and adding a tab to the screen.
-     * @param file The file to open
-     */
-    private void openFile(File file) {
-        addTab(file.getName(), file.getAbsolutePath());
-        CodeEditor text = codeEditors.get(codeEditors.size() - 1);
-        StringBuilder builder = new StringBuilder("");
-        try {
-            for (String line : Files.readAllLines(file.toPath())) {
-                builder.append(line).append("\n");
-            }
-            text.appendText(builder.toString());
-            editorPane.getSelectionModel().selectLast();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Called when File-Save is clicked. Writes the context of the code editor to the appropriate
      * file.
      */
     public void onSave() {
-        CodeEditor editor = codeEditors.get(editorPane.getSelectionModel().getSelectedIndex());
-        String filePath = editor.getId();
-        File file;
-        if (filePath.length() == 0) {
-            FileChooser fileDialog = new FileChooser();
-            file = fileDialog.showSaveDialog(null);
-            App.getSettings().getOpenFiles().add(file.getAbsolutePath());
-        } else {
-            file = new File(filePath);
-        }
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            Files.writeString(file.toPath(), editor.getText(), StandardOpenOption.TRUNCATE_EXISTING);
-            editorPane.getSelectionModel().getSelectedItem().setText(file.getName());
-            editor.setId(file.getAbsolutePath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        this.fileEditor.onSave();
     }
 
     /**
@@ -449,20 +378,19 @@ public class Controller implements Initializable, RequestSource {
      * Called when the application is closed. Cleans up running threads
      * (including syntax highlighting threads).
      */
-    public void destroy() {
-        this.updateThread.interrupt();
-        if (queryThread != null && queryThread.isRunning()) {
-            queryThread.stopRunning();
+    public void destroy(WindowEvent event) {
+        updateExecutor.shutdownNow();
+        if (queryExecutor != null && !queryExecutor.isTerminated()) {
+            queryExecutor.shutdownNow();
         }
-        if (statementThread != null && statementThread.isRunning()) {
-            statementThread.interrupt();
+        if (statementExecutor != null && !statementExecutor.isTerminated()) {
+            statementExecutor.shutdownNow();
         }
-        for (CodeEditor area : codeEditors) {
-            area.destroy();
-        }
-        double num = this.splitPane1.getDividerPositions()[0];
+        fileEditor.onClose(event);
         App.getSettings().setSplitPanePos(this.splitPane1.getDividerPositions()[0]);
         App.getSettings().setSelectedTab(this.editorPane.getSelectionModel().getSelectedIndex());
+        AppSettings.save(App.getSettings());
+
     }
 
 
@@ -480,16 +408,17 @@ public class Controller implements Initializable, RequestSource {
         }
 
     }
+
     public void scale() {
-        this.stage.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx",
-                App.getSettings().getBaseFontSize()));
-        this.codeEditors.stream().forEach(editor ->
-                editor.setStyle(String.format("-fx-font-size: %dpx;", App.getSettings().getBaseFontSize())));
-        this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;",
-                (int) (App.getSettings().getBaseFontSize() * 1.25)));
-        if (this.queryThread != null) {
-            this.queryThread.setBaseFontSize(App.getSettings().getBaseFontSize());
+        if (this.stage != null) {
+            splitPane1.setDividerPositions(App.getSettings().getSplitPanePos());
+            this.stage.getScene().getRoot().setStyle(String.format("-fx-font-size: %dpx",
+                    App.getSettings().getBaseFontSize()));
+            this.fileEditor.scale(App.getSettings().getBaseFontSize());
+            this.errorLabel.setStyle(String.format("-fx-font-size: %dpx;",
+                    (int) (App.getSettings().getBaseFontSize() * 1.25)));
         }
     }
+
 
 }

@@ -2,6 +2,7 @@ package com.viasat.ksqlstudio;
 
 import com.viasat.ksqlstudio.view.Controller;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,17 +30,13 @@ public class App extends Application
         final Controller controller = loader.getController();
         primaryStage.setTitle("ksqlDB Studio");
 
-        primaryStage.setScene(new Scene(root, 900, 900));
+        primaryStage.setScene(new Scene(root, 700, 700));
         primaryStage.getScene().getStylesheets()
                 .add(getClass().getResource("/styles.css").toExternalForm());
         primaryStage.setMaximized(true);
         primaryStage.show();
         controller.setStage(primaryStage);
-
-        primaryStage.setOnCloseRequest( ev -> {
-            controller.destroy();
-            AppSettings.save(settings);
-        });
+        Platform.setImplicitExit(false);
     }
 
     public static void main(String[] args) {

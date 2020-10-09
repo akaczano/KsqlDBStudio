@@ -35,6 +35,10 @@
     -fx-text-fill: white;
 }
 
+.error-label {
+    -fx-text-fill: darkred;
+}
+
 
 
 

@@ -22,6 +22,19 @@ public class InformationService {
         hostname = ksqlHostname + path;
     }
 
+    public static boolean checkConnection(String hostname) {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder(URI.create(hostname + "/healthcheck"))
+                .build();
+        try {
+            HttpResponse<String> response = client.send(request,
+                    HttpResponse.BodyHandlers.ofString());
+            return response.statusCode() == 200;
+        } catch (IOException | InterruptedException e){
+            return false;
+        }
+    }
+
     private Object execute(String statement, StreamProperties props,
                            Class<? extends ResponseBase> format)
             throws IOException, InterruptedException {
@@ -65,6 +78,7 @@ public class InformationService {
             return (StatementError) result;
         }
     }
+
 
     public boolean dropStream(String stream) throws IOException, InterruptedException {
         StreamProperties props = new StreamProperties();

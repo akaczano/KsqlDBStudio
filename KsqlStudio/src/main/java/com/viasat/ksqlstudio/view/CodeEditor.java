@@ -1,12 +1,20 @@
 package com.viasat.ksqlstudio.view;
 
+import com.viasat.ksqlstudio.App;
 import javafx.concurrent.Task;
+import javafx.scene.control.Tab;
+import javafx.stage.FileChooser;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.PlainTextChange;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.reactfx.Subscription;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CodeEditor extends CodeArea {
-    private static final String[] KEYWORDS = new String[] {
+    private static final String[] KEYWORDS = new String[]{
             "select", "create", "where", "and", "or", "emit", "changes",
             "drop", "terminate", "list", "having", "group", "by", "from",
             "limit", "table", "stream", "with", "window", "tumbling", "hopping", "as",
@@ -44,16 +52,19 @@ public class CodeEditor extends CodeArea {
 
     private ExecutorService executor;
 
-    public CodeEditor() {
+    private File file;
+
+    public CodeEditor(File file) {
+        this.file = file;
         executor = Executors.newSingleThreadExecutor();
-        setStyle("-fx-font-size: 30px;");
         this.setParagraphGraphicFactory(LineNumberFactory.get(this));
+
         Subscription cleanupWhenDone = this.multiPlainChanges()
                 .successionEnds(Duration.ofMillis(200))
                 .supplyTask(this::computeHighlightingAsync)
                 .awaitLatest(this.multiPlainChanges())
                 .filterMap(t -> {
-                    if(t.isSuccess()) {
+                    if (t.isSuccess()) {
                         return Optional.of(t.get());
                     } else {
                         t.getFailure().printStackTrace();
@@ -89,7 +100,7 @@ public class CodeEditor extends CodeArea {
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder
                 = new StyleSpansBuilder<>();
-        while(matcher.find()) {
+        while (matcher.find()) {
             String styleClass =
                     matcher.group("KEYWORD") != null ? "keyword" :
                             matcher.group("PAREN") != null ? "paren" :
@@ -98,13 +109,54 @@ public class CodeEditor extends CodeArea {
                                                     matcher.group("SEMICOLON") != null ? "semicolon" :
                                                             matcher.group("STRING") != null ? "string" :
                                                                     matcher.group("COMMENT") != null ? "comment" :
-                                                                            null; /* never happens */ assert styleClass != null;
+                                                                            null; /* never happens */
+            assert styleClass != null;
             spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
             spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
             lastKwEnd = matcher.end();
         }
         spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
         return spansBuilder.create();
+    }
+
+    public void loadFromFile(File file) {
+        this.file = file;
+
+        StringBuilder builder = new StringBuilder();
+        try {
+            for (String line : Files.readAllLines(file.toPath())) {
+                builder.append(line).append("\n");
+            }
+            this.appendText(builder.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void save() {
+        if (!file.exists()) {
+            FileChooser fileDialog = new FileChooser();
+            file = fileDialog.showSaveDialog(null);
+            App.getSettings().getOpenFiles().add(file.getAbsolutePath());
+        }
+        try {
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            Files.writeString(file.toPath(), this.getText(), StandardOpenOption.TRUNCATE_EXISTING);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public File getFile() {
+        return this.file;
     }
 
 }

@@ -5,38 +5,34 @@ import com.viasat.ksqlstudio.model.statement.StatementError;
 import com.viasat.ksqlstudio.service.InformationService;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
-public class StatementThread extends Thread {
+public class StatementJob implements Callable<Boolean> {
 
-    private String statement;
-    private InformationService infoService;
-    private RequestSource source;
-    private volatile boolean running = false;
-
-    public boolean isRunning() {
-        return running;
-    }
+    private final String statement;
+    private final RequestSource source;
+    private final InformationService service;
 
 
-    public StatementThread(String statement, InformationService service, RequestSource source) {
+    public StatementJob(InformationService service, String statement, RequestSource source) {
+        this.service = service;
         this.statement = statement;
         this.source = source;
-        this.infoService = service;
     }
 
     @Override
-    public void run() {
-        running = true;
+    public Boolean call() throws Exception {
         try {
-            ResponseBase result = infoService.executeCommand(statement, source.getProperties());
+            ResponseBase result = service.executeCommand(statement, source.getProperties());
             if (result instanceof StatementError) {
                 StatementError error = (StatementError) result;
                 source.onError(error.getMessage());
             }
         } catch (InterruptedException | IOException e) {
             source.onError("Request Failed!");
+            return false;
         }
         source.onComplete();
-        running = false;
+        return true;
     }
 }

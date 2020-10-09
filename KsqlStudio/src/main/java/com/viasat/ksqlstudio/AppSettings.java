@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ import java.util.List;
 public class AppSettings {
 
     private String ksqlHost;
-    private final List<String> openFiles = new ArrayList<>();
+    private final HashSet<String> openFiles = new HashSet<>();
     private double splitPanePos = 0.2;
     private int baseFontSize = 25;
     private int selectedTab = -1;
@@ -32,7 +33,7 @@ public class AppSettings {
         this.ksqlHost = ksqlHost;
     }
 
-    public List<String> getOpenFiles() {
+    public HashSet<String> getOpenFiles() {
         return openFiles;
     }
 
