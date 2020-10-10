@@ -202,9 +202,9 @@ public class Controller implements Initializable, RequestSource {
                 statementExecutor.submit(new StatementJob(infoService, queryText, this));
             }
         } else {
-            if (!statementExecutor.isTerminated()) {
+            if (statementExecutor != null && !statementExecutor.isTerminated()) {
                 statementExecutor.shutdownNow();
-            } else if (!queryExecutor.isTerminated()) {
+            } else if (queryExecutor != null && !queryExecutor.isTerminated()) {
                 queryStream.close();
                 queryExecutor.shutdown();
             }
@@ -300,6 +300,7 @@ public class Controller implements Initializable, RequestSource {
             this.errorLabel.setText(message);
             this.errorDisplay.setVisible(true);
             this.resultsTable.setVisible(false);
+            this.runButton.setText("Run");
         });
     }
 
