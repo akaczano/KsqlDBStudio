@@ -41,7 +41,7 @@ public class Controller implements Initializable, RequestSource {
 
     // Refresh delay in seconds
     private static final int REFRESH_DELAY = 2;
-    private static final int MAX_RECORDS = 2000;
+    private static final int MAX_RECORDS = 200;
 
 
     // Rest services
@@ -97,6 +97,18 @@ public class Controller implements Initializable, RequestSource {
     @FXML
     private ScrollPane errorDisplay;
 
+    @FXML
+    private Label hostnameLabel;
+
+    @FXML
+    private Label statusLabel;
+
+    @FXML
+    private Label lblHealth;
+
+    @FXML
+    private Label healthLabel;
+
     private FileEditor fileEditor;
 
 
@@ -106,7 +118,7 @@ public class Controller implements Initializable, RequestSource {
     // Executors
     private ScheduledExecutorService updateExecutor;
     private ExecutorService queryExecutor;
-    private java.util.stream.Stream<Object> queryStream;
+    private QueryJob queryStream;
     private ExecutorService statementExecutor;
 
     /**
@@ -124,6 +136,10 @@ public class Controller implements Initializable, RequestSource {
             String hostname = App.getSettings().getKsqlHost();
             infoService = new InformationService(hostname);
             queryService = new QueryService(hostname);
+            hostnameLabel.setText(String.format("Server: %s   Status: ", hostname));
+            statusLabel.setText("Connecting...");
+            statusLabel.setStyle("-fx-text-fill: orange;");
+
 
             if (updateLists()) {
                 runButton.setDisable(false);
@@ -170,6 +186,8 @@ public class Controller implements Initializable, RequestSource {
             controller.initialize(stage);
             stage.showAndWait();
             infoService = new InformationService(App.getSettings().getKsqlHost());
+            hostnameLabel.setText(String.format("Server: %s   Status: ",
+                    App.getSettings().getKsqlHost()));
         } catch(IOException e) {
             e.printStackTrace();
         }
@@ -193,11 +211,11 @@ public class Controller implements Initializable, RequestSource {
             if (queryText.trim().toUpperCase().startsWith("SELECT")) {
                 resultsTable.getItems().clear();
                 resultsTable.getColumns().clear();
-                this.queryStream = queryService.streamQuery(queryText, getProperties());
+                this.queryStream = new QueryJob(queryService.streamQuery(queryText, getProperties()), this);
                 queryExecutor = Executors.newSingleThreadExecutor();
-                queryExecutor.submit(new QueryJob(queryStream, this));
-
-            } else {
+                queryExecutor.submit(queryStream);
+            }
+            else {
                 statementExecutor = Executors.newSingleThreadExecutor();
                 statementExecutor.submit(new StatementJob(infoService, queryText, this));
             }
@@ -205,7 +223,7 @@ public class Controller implements Initializable, RequestSource {
             if (statementExecutor != null && !statementExecutor.isTerminated()) {
                 statementExecutor.shutdownNow();
             } else if (queryExecutor != null && !queryExecutor.isTerminated()) {
-                queryStream.close();
+                queryStream.stop();
                 queryExecutor.shutdown();
             }
             runButton.setText("Run");
@@ -278,12 +296,13 @@ public class Controller implements Initializable, RequestSource {
 
     @Override
     public void addRow(Object[] row) {
-        Platform.runLater(() -> {
+        //Platform.runLater(() -> {
             this.resultsList.add(0, row);
             if (this.resultsList.size() > MAX_RECORDS) {
                 this.resultsList.remove(this.resultsList.size() - 1);
+
             }
-        });
+        //});
     }
 
     /**
@@ -338,7 +357,16 @@ public class Controller implements Initializable, RequestSource {
      */
     public void refresh() {
         boolean connected = updateLists();
-        runButton.setDisable(!connected);
+        Platform.runLater(() -> {
+            runButton.setDisable(!connected);
+            if (connected) {
+                statusLabel.setText("Connected");
+                statusLabel.setStyle("-fx-text-fill: green;");
+            } else {
+                statusLabel.setText("Disconnected");
+                statusLabel.setStyle("-fx-text-fill: red");
+            }
+        });
     }
 
     /**

@@ -13,6 +13,12 @@ public class QueryJob implements Callable<Boolean> {
     private final Stream<Object> stream;
     private final RequestSource source;
 
+    private volatile boolean stopped = false;
+
+    public void stop() {
+        stopped = true;
+    }
+
     public QueryJob(Stream<Object> stream, RequestSource source) {
         this.stream = stream;
         this.source = source;
@@ -21,7 +27,10 @@ public class QueryJob implements Callable<Boolean> {
     @Override
     public Boolean call() {
         try {
-            stream.forEach((obj) -> {
+            stream.takeWhile(p -> !stopped).forEach((obj) -> {
+                if (stopped) {
+                    stream.close();
+                }
                 if (obj != null) {
                     if (obj instanceof StreamHeader) {
                         StreamHeader header = (StreamHeader) obj;
