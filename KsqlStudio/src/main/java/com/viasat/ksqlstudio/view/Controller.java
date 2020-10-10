@@ -137,7 +137,7 @@ public class Controller implements Initializable, RequestSource {
             infoService = new InformationService(hostname);
             queryService = new QueryService(hostname);
             hostnameLabel.setText(String.format("Server: %s   Status: ", hostname));
-            statusLabel.setText("Connecting...");
+            statusLabel.setText("Connecting...     ");
             statusLabel.setStyle("-fx-text-fill: orange;");
 
 
@@ -188,6 +188,8 @@ public class Controller implements Initializable, RequestSource {
             infoService = new InformationService(App.getSettings().getKsqlHost());
             hostnameLabel.setText(String.format("Server: %s   Status: ",
                     App.getSettings().getKsqlHost()));
+            lblHealth.setText("");
+            healthLabel.setText("");
         } catch(IOException e) {
             e.printStackTrace();
         }
@@ -208,6 +210,7 @@ public class Controller implements Initializable, RequestSource {
             errorDisplay.setVisible(false);
             resultsTable.setVisible(true);
             runButton.setText("Terminate");
+            resultsTable.setDisable(true);
             if (queryText.trim().toUpperCase().startsWith("SELECT")) {
                 resultsTable.getItems().clear();
                 resultsTable.getColumns().clear();
@@ -220,12 +223,10 @@ public class Controller implements Initializable, RequestSource {
                 statementExecutor.submit(new StatementJob(infoService, queryText, this));
             }
         } else {
-            System.out.println("Termination");
             if (statementExecutor != null && !statementExecutor.isTerminated()) {
                 statementExecutor.shutdownNow();
             }
             if (queryExecutor != null && !queryExecutor.isTerminated()) {
-                System.out.println("Termiante query");
                 queryStream.stop();
                 queryExecutor.shutdown();
             }
@@ -302,8 +303,7 @@ public class Controller implements Initializable, RequestSource {
         //Platform.runLater(() -> {
             this.resultsList.add(0, row);
             if (this.resultsList.size() > MAX_RECORDS) {
-                this.resultsList.remove(this.resultsList.size() - 1);
-
+                //this.resultsList.remove(this.resultsList.size() - 1);
             }
         //});
     }
@@ -335,6 +335,7 @@ public class Controller implements Initializable, RequestSource {
     public void onComplete() {
         Platform.runLater(() -> {
             this.runButton.setText("Run");
+            this.resultsTable.setDisable(false);
         });
     }
 
@@ -362,11 +363,17 @@ public class Controller implements Initializable, RequestSource {
         Platform.runLater(() -> {
             runButton.setDisable(!connected);
             if (connected) {
-                statusLabel.setText("Connected");
+                statusLabel.setText("Connected    ");
                 statusLabel.setStyle("-fx-text-fill: green;");
+                //TODO check health
+                lblHealth.setText("Server Health:  ");
+                healthLabel.setText("Healthy");
+                healthLabel.setStyle("-fx-text-fill: green;");
             } else {
-                statusLabel.setText("Disconnected");
+                statusLabel.setText("Disconnected    ");
                 statusLabel.setStyle("-fx-text-fill: red");
+                healthLabel.setText("");
+                lblHealth.setText("");
             }
         });
     }

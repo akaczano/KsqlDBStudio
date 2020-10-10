@@ -14,6 +14,7 @@ public class QueryJob implements Callable<Boolean> {
     private final RequestSource source;
 
     private volatile boolean stopped = false;
+    private int counter = 0;
 
     public void stop() {
         stopped = true;
@@ -29,10 +30,14 @@ public class QueryJob implements Callable<Boolean> {
     public Boolean call() {
         try {
             stream.takeWhile(p -> !stopped).forEach((obj) -> {
+                counter++;
+                if (counter % 1000 == 0) {
+                    System.out.println(counter);
+                }
                 if (stopped) {
                     stream.close();
                 }
-                //System.out.println("Record");
+
                 if (obj != null) {
                     if (obj instanceof StreamHeader) {
                         StreamHeader header = (StreamHeader) obj;
@@ -46,6 +51,7 @@ public class QueryJob implements Callable<Boolean> {
                     } else if (obj instanceof StatementError) {
                         StatementError err = (StatementError) obj;
                         source.onError(err.getMessage());
+                        stopped = true;
                     }
                 }
             });
