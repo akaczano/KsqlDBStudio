@@ -17,6 +17,7 @@ public class QueryJob implements Callable<Boolean> {
 
     public void stop() {
         stopped = true;
+        System.out.println("Stopped");
     }
 
     public QueryJob(Stream<Object> stream, RequestSource source) {
@@ -31,6 +32,7 @@ public class QueryJob implements Callable<Boolean> {
                 if (stopped) {
                     stream.close();
                 }
+                //System.out.println("Record");
                 if (obj != null) {
                     if (obj instanceof StreamHeader) {
                         StreamHeader header = (StreamHeader) obj;
@@ -50,7 +52,7 @@ public class QueryJob implements Callable<Boolean> {
         } catch (Exception e) {
             return false;
         }
-
+        source.onComplete();
         return true;
     }
 

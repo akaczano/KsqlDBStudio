@@ -220,9 +220,12 @@ public class Controller implements Initializable, RequestSource {
                 statementExecutor.submit(new StatementJob(infoService, queryText, this));
             }
         } else {
+            System.out.println("Termination");
             if (statementExecutor != null && !statementExecutor.isTerminated()) {
                 statementExecutor.shutdownNow();
-            } else if (queryExecutor != null && !queryExecutor.isTerminated()) {
+            }
+            if (queryExecutor != null && !queryExecutor.isTerminated()) {
+                System.out.println("Termiante query");
                 queryStream.stop();
                 queryExecutor.shutdown();
             }
@@ -332,7 +335,6 @@ public class Controller implements Initializable, RequestSource {
     public void onComplete() {
         Platform.runLater(() -> {
             this.runButton.setText("Run");
-            this.updateLists();
         });
     }
 
