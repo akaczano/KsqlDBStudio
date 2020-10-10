@@ -4,10 +4,7 @@ import com.viasat.ksqlstudio.App;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -24,11 +21,15 @@ import java.util.Optional;
 public class FileEditor {
     private final TabPane view;
     private final List<CodeEditor> editors = new ArrayList<>();
+    private final Button runButton;
+    private final CheckBox cbxOffset;
 
     private int fontSize = 25;
 
-    public FileEditor(TabPane view){
+    public FileEditor(TabPane view, Button runButton, CheckBox cbxOffset){
         this.view = view;
+        this.runButton = runButton;
+        this.cbxOffset = cbxOffset;
         App.getSettings().getOpenFiles().removeIf(f -> !(new File(f)).exists());
         for (String f : App.getSettings().getOpenFiles()) {
             openFile(new File(f));
@@ -63,6 +64,10 @@ public class FileEditor {
             editors.remove(index);
             view.getTabs().remove(defaultTab);
             App.getSettings().getOpenFiles().remove(editor.getId());
+            if (view.getTabs().size() < 1) {
+                runButton.setVisible(false);
+                cbxOffset.setVisible(false);
+            }
         });
         menu.getItems().add(closeItem);
         defaultTab.setContextMenu(menu);
@@ -70,11 +75,11 @@ public class FileEditor {
         if (file.exists()) {
             editor.loadFromFile(file);
         }
-        /*
+
         if (view.getTabs().size() == 1) {
             runButton.setVisible(true);
             cbxOffset.setVisible(true);
-        }*/
+        }
         editor.setStyle(String.format("-fx-font-size: %dpx;", (int)(this.fontSize * 1.25)));
         editor.plainTextChanges().subscribe(this::codeTyped);
     }

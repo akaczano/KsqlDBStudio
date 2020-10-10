@@ -41,7 +41,7 @@ public class Controller implements Initializable, RequestSource {
 
     // Refresh delay in seconds
     private static final int REFRESH_DELAY = 2;
-    private static final int MAX_RECORDS = 5000;
+    private static final int MAX_RECORDS = 2000;
 
 
     // Rest services
@@ -129,7 +129,7 @@ public class Controller implements Initializable, RequestSource {
                 runButton.setDisable(false);
             }
         }
-        fileEditor = new FileEditor(this.editorPane);
+        fileEditor = new FileEditor(this.editorPane, this.runButton, this.cbxOffset);
 
 
         if (editorPane.getTabs().size() < 1) {
@@ -190,7 +190,7 @@ public class Controller implements Initializable, RequestSource {
             errorDisplay.setVisible(false);
             resultsTable.setVisible(true);
             runButton.setText("Terminate");
-            if (queryText.startsWith("SELECT")) {
+            if (queryText.trim().toUpperCase().startsWith("SELECT")) {
                 resultsTable.getItems().clear();
                 resultsTable.getColumns().clear();
                 this.queryStream = queryService.streamQuery(queryText, getProperties());
