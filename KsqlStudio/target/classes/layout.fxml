@@ -12,9 +12,9 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.viasat.ksqlstudio.view.Controller">
@@ -63,6 +63,14 @@
           </Menu>
         </menus>
       </MenuBar>
+      <ToolBar prefHeight="40.0" prefWidth="200.0">
+         <items>
+            <Label fx:id="hostnameLabel" text="Server: http://localhost:8088  Status:" />
+            <Label fx:id="statusLabel" style="-fx-text-fill: green;" text="Connected" />
+            <Label fx:id="lblHealth" text="Server Health:" />
+            <Label fx:id="healthLabel" style="-fx-text-fill: green;" text="Healthy" />
+         </items>
+      </ToolBar>
       <SplitPane fx:id="splitPane1" dividerPositions="0.2049306625577812" maxHeight="1.7976931348623157E308" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -104,20 +112,12 @@
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                            <children>
                               <TabPane fx:id="editorPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                              <HBox maxHeight="-Infinity" minHeight="-Infinity" prefHeight="75.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-                                 <children>
-                                    <Button fx:id="runButton" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#runButtonClick" text="Run">
-                                       <HBox.margin>
-                                          <Insets bottom="10.0" left="5.0" top="10.0" />
-                                       </HBox.margin>
-                                    </Button>
-                                    <CheckBox fx:id="cbxOffset" alignment="TOP_LEFT" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="From beginning">
-                                       <HBox.margin>
-                                          <Insets bottom="10.0" left="15.0" top="20.0" />
-                                       </HBox.margin>
-                                    </CheckBox>
-                                 </children>
-                              </HBox>
+                              <ToolBar prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                                 <items>
+                                    <Button fx:id="runButton" alignment="CENTER" disable="true" mnemonicParsing="false" onAction="#runButtonClick" text="Run" />
+                                    <CheckBox fx:id="cbxOffset" alignment="TOP_LEFT" mnemonicParsing="false" nodeOrientation="LEFT_TO_RIGHT" text="From beginning" />
+                                 </items>
+                              </ToolBar>
                            </children>
                         </AnchorPane>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">

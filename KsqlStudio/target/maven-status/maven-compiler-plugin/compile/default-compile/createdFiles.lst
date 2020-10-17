@@ -4,7 +4,6 @@ com/viasat/ksqlstudio/view/CodeEditor.class
 com/viasat/ksqlstudio/model/query/StreamProperties.class
 com/viasat/ksqlstudio/model/statement/Warning.class
 com/viasat/ksqlstudio/model/statement/StatementResponse.class
-com/viasat/ksqlstudio/view/QueryThread.class
 com/viasat/ksqlstudio/model/statement/CommandResponse.class
 com/viasat/ksqlstudio/model/statement/ConnectorType.class
 com/viasat/ksqlstudio/service/InformationService.class
