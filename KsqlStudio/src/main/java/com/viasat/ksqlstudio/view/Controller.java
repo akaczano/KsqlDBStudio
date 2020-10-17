@@ -140,10 +140,15 @@ public class Controller implements Initializable, RequestSource {
             statusLabel.setText("Connecting...     ");
             statusLabel.setStyle("-fx-text-fill: orange;");
 
-
             if (updateLists()) {
                 runButton.setDisable(false);
             }
+        }
+        else {
+            hostnameLabel.setText("Not connected to server");
+            statusLabel.setVisible(false);
+            healthLabel.setVisible(false);
+            lblHealth.setVisible(false);
         }
         fileEditor = new FileEditor(this.editorPane, this.runButton, this.cbxOffset);
 
@@ -186,8 +191,12 @@ public class Controller implements Initializable, RequestSource {
             controller.initialize(stage);
             stage.showAndWait();
             infoService = new InformationService(App.getSettings().getKsqlHost());
+            queryService = new QueryService(App.getSettings().getKsqlHost());
             hostnameLabel.setText(String.format("Server: %s   Status: ",
                     App.getSettings().getKsqlHost()));
+            statusLabel.setVisible(true);
+            lblHealth.setVisible(true);
+            healthLabel.setVisible(true);
             lblHealth.setText("");
             healthLabel.setText("");
         } catch(IOException e) {
@@ -231,6 +240,7 @@ public class Controller implements Initializable, RequestSource {
                 queryExecutor.shutdown();
             }
             runButton.setText("Run");
+            resultsTable.setDisable(false);
         }
     }
 
