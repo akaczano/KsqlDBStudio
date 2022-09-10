@@ -9,6 +9,10 @@ This is provides a GUI-based tool for editing and executing ksqlDB queries.
 2. cd KsqlDBStudio/KsqlStudio
 3. mvn javafx:run
 
+You should see a screen like this where you can edit and execute queries:
+
+![](graphic.png)
+
 
 ### Current to-do list:
 - GUI support for DROP, TERMINATE,and DESCRIBE queries. For instance, you should be able to right-click on a stream and click 'Drop' or 'Properties'
